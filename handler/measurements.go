@@ -2,7 +2,6 @@ package handler
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -18,19 +17,18 @@ func GetMeasurements(db *sql.DB) {
 	var cfg model.Config = config.LoadConfiguration()
 	devices, err := handlerDevice(db).FindAll()
 	if err != nil {
-		fmt.Println("error searching for devices:", err.Error())
+		log.Println("error searching for devices:", err.Error())
 		os.Exit(1)
 	}
 	if len(devices) == 0 {
-		fmt.Println("no device data to scan")
-		os.Exit(1)
+		log.Fatalln("no device data to scan")
+
 	}
 
 	var unix_time uint = uint(time.Now().Unix())
 	date_id, err := handlerDate(db).Add(model.Date{Date: unix_time})
 	if err != nil {
-		fmt.Printf("error search save the date %d: %s\n", unix_time, err.Error())
-		os.Exit(1)
+		log.Fatalf("error search save the date %d: %s\n", unix_time, err.Error())
 	}
 
 	for _, device := range devices {

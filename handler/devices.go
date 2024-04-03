@@ -29,7 +29,7 @@ func AddDevices(db *sql.DB, ip string, community string) {
 	device := snmp.Sysname(ip, cfg.ProxyHost, community)
 	err := handlerDevice(db).Add(device)
 	if err != nil {
-		fmt.Println("error saving device:", err.Error())
+		log.Println("error saving device:", err.Error())
 		os.Exit(1)
 	}
 

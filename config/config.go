@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -23,7 +22,7 @@ func LoadConfiguration() model.Config {
 	var config model.Config
 	configFile, err := os.Open(filename)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		os.Exit(0)
 
 	}

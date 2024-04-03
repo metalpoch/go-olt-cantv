@@ -3,7 +3,6 @@ package snmp
 import (
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -29,9 +28,7 @@ func Sysname(ip, host, community string) model.Device {
 	snmp_command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, sysname_oid)
 	out, err := exec.Command("ssh", host, snmp_command).Output()
 	if err != nil {
-		fmt.Println("error when running snmp command, check IP and Community")
-		os.Exit(1)
-
+		log.Fatalln("error when running snmp command, check IP and Community")
 	}
 	rows := strings.Split(string(out), "\n")
 	for _, row := range rows {
