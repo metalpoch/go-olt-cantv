@@ -11,7 +11,7 @@ import (
 const createDatesTable string = `
 CREATE TABLE IF NOT EXISTS dates (
 	id INTEGER NOT NULL PRIMARY KEY,
-	date INTEGER NOT NULL
+	date INTEGER UNIQUE NOT NULL
 );`
 
 const createDevicesTable string = `
@@ -25,10 +25,12 @@ CREATE TABLE IF NOT EXISTS devices (
 const createElementsTable string = `
 CREATE TABLE IF NOT EXISTS elements (
 	id INTEGER NOT NULL PRIMARY KEY,
-	port TEXT NOT NULL,
+	shell INTEGER NOT NULL,
+	card INTEGER NOT NULL,
+	port INTEGER NOT NULL,
 	device_id INTEGER NOT NULL,
 	FOREIGN KEY (device_id) REFERENCES devices(id),
-	UNIQUE (port, device_id)
+	UNIQUE (shell, card, port, device_id)
 );`
 
 const createMeasurementsTable string = `

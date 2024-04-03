@@ -8,7 +8,7 @@ import (
 
 	"github.com/metalpoch/go-olt-cantv/config"
 	"github.com/metalpoch/go-olt-cantv/model"
-	snmp "github.com/metalpoch/go-olt-cantv/pkg"
+	"github.com/metalpoch/go-olt-cantv/pkg/snmp"
 )
 
 func GetDevices(db *sql.DB) {

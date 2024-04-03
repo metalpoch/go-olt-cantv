@@ -1,12 +1,15 @@
 package model
 
-type Elements struct {
+type Element struct {
 	ID       uint
-	Port     string
+	Shell    uint
+	Card     uint
+	Port     uint
 	DeviceID uint
 }
 
 type PartialElement struct {
-	Port     string
-	DeviceID uint
+	Shell uint
+	Card  uint
+	Port  uint
 }

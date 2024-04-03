@@ -18,19 +18,19 @@ func NewElementsUsecase(repo repository.ElementsRepository) *ElementsUsecase {
 	}
 }
 
-func (e ElementsUsecase) Find(element model.Elements) (model.Elements, error) {
+func (e ElementsUsecase) Find(element model.Element) (model.Element, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	result, err := e.Repository.Find(ctx, element)
 	if err != nil {
-		return model.Elements{}, err
+		return model.Element{}, err
 	}
 
 	return result, nil
 }
 
-func (e ElementsUsecase) Save(newElement model.Elements) (model.Elements, error) {
+func (e ElementsUsecase) Save(newElement model.Element) (model.Element, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
