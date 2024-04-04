@@ -22,9 +22,7 @@ func LoadConfiguration() model.Config {
 	var config model.Config
 	configFile, err := os.Open(filename)
 	if err != nil {
-		log.Println(err.Error())
-		os.Exit(0)
-
+		log.Fatalln(err.Error())
 	}
 	defer configFile.Close()
 

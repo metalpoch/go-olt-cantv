@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/metalpoch/go-olt-cantv/entity"
 	"github.com/metalpoch/go-olt-cantv/model"
 )
 
@@ -21,7 +20,7 @@ func NewDevicesRepository(db *sql.DB) *devicesRepository {
 
 type DevicesRepository interface {
 	Save(ctx context.Context, device model.Device) (int, error)
-	FindAll(ctx context.Context) ([]entity.Devices, error)
+	FindAll(ctx context.Context) ([]model.Device, error)
 }
 
 // return id of new device
@@ -45,8 +44,8 @@ func (repo devicesRepository) Save(ctx context.Context, device model.Device) (in
 	return int(id), nil
 }
 
-func (repo devicesRepository) FindAll(ctx context.Context) ([]entity.Devices, error) {
-	var devices []entity.Devices
+func (repo devicesRepository) FindAll(ctx context.Context) ([]model.Device, error) {
+	var devices []model.Device
 
 	rows, err := repo.db.QueryContext(ctx, "SELECT * FROM devices")
 	if err != nil {
@@ -55,7 +54,7 @@ func (repo devicesRepository) FindAll(ctx context.Context) ([]entity.Devices, er
 	defer rows.Close()
 
 	for rows.Next() {
-		var device entity.Devices
+		var device model.Device
 		err = rows.Scan(&device.ID, &device.IP, &device.Community, &device.Sysname)
 		if err != nil {
 			return devices, err

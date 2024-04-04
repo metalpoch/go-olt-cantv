@@ -1,6 +1,6 @@
 package entity
 
-type Devices struct {
+type Device struct {
 	ID        uint
 	IP        string
 	Community string

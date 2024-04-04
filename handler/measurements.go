@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -16,13 +15,13 @@ import (
 func GetMeasurements(db *sql.DB) {
 	var cfg model.Config = config.LoadConfiguration()
 	devices, err := handlerDevice(db).FindAll()
+
 	if err != nil {
-		log.Println("error searching for devices:", err.Error())
-		os.Exit(1)
+		log.Fatalln("error searching for devices:", err.Error())
 	}
+
 	if len(devices) == 0 {
 		log.Fatalln("no device data to scan")
-
 	}
 
 	var unix_time uint = uint(time.Now().Unix())

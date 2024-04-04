@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/metalpoch/go-olt-cantv/entity"
 	"github.com/metalpoch/go-olt-cantv/model"
 	"github.com/metalpoch/go-olt-cantv/repository"
 )
@@ -32,7 +31,7 @@ func (d DevicesUsecase) Add(device model.Device) error {
 	return nil
 }
 
-func (d DevicesUsecase) FindAll() ([]entity.Devices, error) {
+func (d DevicesUsecase) FindAll() ([]model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
