@@ -18,9 +18,9 @@ func GetDevices(db *sql.DB) {
 		log.Fatal("error searching for devices:", err.Error())
 	}
 
-	fmt.Println("ID\t\tIP\tCommunity\tSysname")
+	fmt.Println("Sysname\tIP\tCommunity")
 	for _, device := range devices {
-		fmt.Printf("%d\t%s\t%s\t%s\n", device.ID, device.IP, device.Community, device.Sysname)
+		fmt.Printf("%s\t%s\t%s\n", device.Sysname, device.IP, device.Community)
 	}
 }
 

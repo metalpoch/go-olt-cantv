@@ -8,17 +8,17 @@ import (
 	"github.com/metalpoch/go-olt-cantv/repository"
 )
 
-type DevicesUsecase struct {
-	Repository repository.DevicesRepository
+type DeviceUsecase struct {
+	Repository repository.DeviceRepository
 }
 
-func NewDevicesUsecase(repo repository.DevicesRepository) *DevicesUsecase {
-	return &DevicesUsecase{
+func NewDevicesUsecase(repo repository.DeviceRepository) *DeviceUsecase {
+	return &DeviceUsecase{
 		Repository: repo,
 	}
 }
 
-func (d DevicesUsecase) Add(device model.Device) error {
+func (d DeviceUsecase) Add(device model.Device) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -31,7 +31,7 @@ func (d DevicesUsecase) Add(device model.Device) error {
 	return nil
 }
 
-func (d DevicesUsecase) FindAll() ([]model.Device, error) {
+func (d DeviceUsecase) FindAll() ([]model.Device, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

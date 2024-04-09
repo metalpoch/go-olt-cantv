@@ -8,23 +8,23 @@ import (
 	"github.com/metalpoch/go-olt-cantv/model"
 )
 
-type devicesRepository struct {
+type deviceRepository struct {
 	db *sql.DB
 }
 
-func NewDevicesRepository(db *sql.DB) *devicesRepository {
-	return &devicesRepository{
+func NewDeviceRepository(db *sql.DB) *deviceRepository {
+	return &deviceRepository{
 		db: db,
 	}
 }
 
-type DevicesRepository interface {
+type DeviceRepository interface {
 	Save(ctx context.Context, device model.Device) (int, error)
 	FindAll(ctx context.Context) ([]model.Device, error)
 }
 
 // return id of new device
-func (repo devicesRepository) Save(ctx context.Context, device model.Device) (int, error) {
+func (repo deviceRepository) Save(ctx context.Context, device model.Device) (int, error) {
 	res, err := repo.db.ExecContext(
 		ctx,
 		"INSERT INTO devices (ip, community, sysname) VALUES(?, ?, ?)",
@@ -44,10 +44,10 @@ func (repo devicesRepository) Save(ctx context.Context, device model.Device) (in
 	return int(id), nil
 }
 
-func (repo devicesRepository) FindAll(ctx context.Context) ([]model.Device, error) {
+func (repo deviceRepository) FindAll(ctx context.Context) ([]model.Device, error) {
 	var devices []model.Device
 
-	rows, err := repo.db.QueryContext(ctx, "SELECT * FROM devices")
+	rows, err := repo.db.QueryContext(ctx, "SELECT sysname, ip, community FROM devices")
 	if err != nil {
 		return devices, nil
 	}
@@ -55,7 +55,7 @@ func (repo devicesRepository) FindAll(ctx context.Context) ([]model.Device, erro
 
 	for rows.Next() {
 		var device model.Device
-		err = rows.Scan(&device.ID, &device.IP, &device.Community, &device.Sysname)
+		err = rows.Scan(&device.Sysname, &device.IP, &device.Community)
 		if err != nil {
 			return devices, err
 		}
