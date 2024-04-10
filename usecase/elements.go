@@ -18,28 +18,27 @@ func NewElementsUsecase(repo repository.ElementsRepository) *ElementsUsecase {
 	}
 }
 
-func (e ElementsUsecase) Find(element model.Element) (model.Element, error) {
+func (e ElementsUsecase) FindID(element model.Element) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	result, err := e.Repository.Find(ctx, element)
+	id, err := e.Repository.FindID(ctx, element)
 	if err != nil {
-		return model.Element{}, err
+		return id, err
 	}
 
-	return result, nil
+	return id, nil
 }
 
-func (e ElementsUsecase) Save(newElement model.Element) (model.Element, error) {
+func (e ElementsUsecase) Save(newElement model.Element) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	id, err := e.Repository.Save(ctx, newElement)
 
 	if err != nil {
-		return newElement, err
+		return id, err
 	}
 
-	newElement.ID = uint(id)
-	return newElement, nil
+	return id, nil
 }

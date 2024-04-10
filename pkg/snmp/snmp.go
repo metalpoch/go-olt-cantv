@@ -42,8 +42,12 @@ func Sysname(ip, host, community string) model.Device {
 	return sysname
 }
 
-func Measurements(ip, host, community string) model.Measurements {
-	ports_map, in_map, out_map, bandwidth_map := make(map[uint]string), make(map[uint]uint), make(map[uint]uint), make(map[uint]uint)
+func Measurements(ip, host, community string) model.Snmp {
+	ports_map := make(map[int]string)
+	in_map := make(map[int]int)
+	out_map := make(map[int]int)
+	bandwidth_map := make(map[int]int)
+
 	var wg sync.WaitGroup
 	wg.Add(4)
 
@@ -65,11 +69,12 @@ func Measurements(ip, host, community string) model.Measurements {
 			index_part := strings.Split(splited[0], ".")
 			value = strings.Split(splited[1], ": ")[1]
 
-			index, err := strconv.ParseUint(index_part[len(index_part)-1], 10, 64)
+			index, err := strconv.Atoi(index_part[len(index_part)-1])
 			if err != nil {
 				log.Fatal(err)
 			}
-			ports_map[uint(index)] = value
+
+			ports_map[index] = value
 
 		}
 	}(ifname_oid)
@@ -93,17 +98,17 @@ func Measurements(ip, host, community string) model.Measurements {
 			index_part := strings.Split(splited[0], ".")
 			value = strings.Split(splited[1], ": ")[1]
 
-			index, err := strconv.ParseUint(index_part[len(index_part)-1], 10, 64)
+			index, err := strconv.Atoi(index_part[len(index_part)-1])
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			u64, err := strconv.ParseUint(value, 10, 64)
+			valueInt, err := strconv.Atoi(value)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			in_map[uint(index)] = uint(u64)
+			in_map[index] = valueInt
 
 		}
 	}(bytes_in_oid)
@@ -126,17 +131,17 @@ func Measurements(ip, host, community string) model.Measurements {
 			index_part := strings.Split(splited[0], ".")
 			value = strings.Split(splited[1], ": ")[1]
 
-			index, err := strconv.ParseUint(index_part[len(index_part)-1], 10, 64)
+			index, err := strconv.Atoi(index_part[len(index_part)-1])
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			u64, err := strconv.ParseUint(value, 10, 64)
+			valueInt, err := strconv.Atoi(value)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			out_map[uint(index)] = uint(u64)
+			out_map[index] = valueInt
 
 		}
 	}(bytes_out_oid)
@@ -159,24 +164,24 @@ func Measurements(ip, host, community string) model.Measurements {
 			index_part := strings.Split(splited[0], ".")
 			value = strings.Split(splited[1], ": ")[1]
 
-			index, err := strconv.ParseUint(index_part[len(index_part)-1], 10, 64)
+			index, err := strconv.Atoi(index_part[len(index_part)-1])
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			u64, err := strconv.ParseUint(value, 10, 64)
+			valueInt, err := strconv.Atoi(value)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			bandwidth_map[uint(index)] = uint(u64)
+			bandwidth_map[index] = valueInt
 
 		}
 	}(bandwidth_oid)
 
 	wg.Wait()
 
-	return model.Measurements{
+	return model.Snmp{
 		IfName:    ports_map,
 		ByteIn:    in_map,
 		ByteOut:   out_map,

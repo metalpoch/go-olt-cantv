@@ -11,7 +11,7 @@ import (
 const createDatesTable string = `
 CREATE TABLE IF NOT EXISTS dates (
 	id INTEGER NOT NULL PRIMARY KEY,
-	date INTEGER UNIQUE NOT NULL
+	unix INTEGER NOT NULL
 );`
 
 const createDevicesTable string = `
@@ -25,24 +25,35 @@ CREATE TABLE IF NOT EXISTS devices (
 const createElementsTable string = `
 CREATE TABLE IF NOT EXISTS elements (
 	id INTEGER NOT NULL PRIMARY KEY,
+	device_id INTEGER NOT NULL,
 	shell INTEGER NOT NULL,
 	card INTEGER NOT NULL,
 	port INTEGER NOT NULL,
-	device_id INTEGER NOT NULL,
 	FOREIGN KEY (device_id) REFERENCES devices(id),
 	UNIQUE (shell, card, port, device_id)
 );`
 
-const createMeasurementsTable string = `
-CREATE TABLE IF NOT EXISTS measurements (
-	id INTEGER NOT NULL PRIMARY KEY,
+const createCountsTable string = `
+CREATE TABLE IF NOT EXISTS tempcounts (
+	element_id INTEGER NOT NULL,
+	date_id INTEGER NOT NULL,
 	bytes_in INTEGER NOT NULL,
 	bytes_out INTEGER NOT NULL,
 	bandwidth INTEGER NOT NULL,
+	FOREIGN KEY (element_id) REFERENCES elements(id),
+	FOREIGN KEY (date_id) REFERENCES dates(id)
+);`
+
+const createTrafficTable string = `
+CREATE TABLE IF NOT EXISTS traffic (
+	id INTEGER NOT NULL PRIMARY KEY,
+	element_id INTEGER,
 	date_id INTEGER,
-	elements_id INTEGER,
+	kbps_in INTEGER NOT NULL,
+	kbps_out INTEGER NOT NULL,
+	bandwidth INTEGER NOT NULL,
   FOREIGN KEY (date_id) REFERENCES dates(id),
-  FOREIGN KEY (elements_id) REFERENCES elements(id)
+  FOREIGN KEY (element_id) REFERENCES elements(id)
 );`
 
 func createTables(db *sql.DB) error {
@@ -54,11 +65,15 @@ func createTables(db *sql.DB) error {
 		return err
 	}
 
+	if _, err := db.Exec(createCountsTable); err != nil {
+		return err
+	}
+
 	if _, err := db.Exec(createElementsTable); err != nil {
 		return err
 	}
 
-	if _, err := db.Exec(createMeasurementsTable); err != nil {
+	if _, err := db.Exec(createTrafficTable); err != nil {
 		return err
 	}
 	return nil

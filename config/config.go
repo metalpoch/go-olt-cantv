@@ -4,20 +4,18 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/metalpoch/go-olt-cantv/model"
 )
 
 func LoadConfiguration() model.Config {
-	executable_dir, err := os.Executable()
+	directory, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	base_dir := path.Dir(executable_dir)
-	filename := filepath.Join(base_dir, "config.json")
+	filename := filepath.Join(directory, "config.json")
 
 	var config model.Config
 	configFile, err := os.Open(filename)

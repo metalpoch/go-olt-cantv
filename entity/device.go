@@ -1,7 +1,7 @@
 package entity
 
 type Device struct {
-	ID        uint
+	ID        int
 	IP        string
 	Community string
 	Sysname   string

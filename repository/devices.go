@@ -47,7 +47,7 @@ func (repo deviceRepository) Save(ctx context.Context, device model.Device) (int
 func (repo deviceRepository) FindAll(ctx context.Context) ([]model.Device, error) {
 	var devices []model.Device
 
-	rows, err := repo.db.QueryContext(ctx, "SELECT sysname, ip, community FROM devices")
+	rows, err := repo.db.QueryContext(ctx, "SELECT * FROM devices")
 	if err != nil {
 		return devices, nil
 	}
@@ -55,7 +55,7 @@ func (repo deviceRepository) FindAll(ctx context.Context) ([]model.Device, error
 
 	for rows.Next() {
 		var device model.Device
-		err = rows.Scan(&device.Sysname, &device.IP, &device.Community)
+		err = rows.Scan(&device.ID, &device.IP, &device.Community, &device.Sysname)
 		if err != nil {
 			return devices, err
 		}

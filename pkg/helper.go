@@ -2,6 +2,7 @@ package helper
 
 import (
 	"log"
+	"math"
 	"strconv"
 	"strings"
 
@@ -28,8 +29,13 @@ func ParseGPON(s string) model.Element {
 	}
 
 	return model.Element{
-		Shell: uint(shell),
-		Card:  uint(card),
-		Port:  uint(port),
+		Shell: shell,
+		Card:  card,
+		Port:  port,
 	}
+}
+
+func BytesToKbps(prevBytes, currBytes, diffDate int) int {
+	bps := math.Abs(float64(8*currBytes)-float64(8*prevBytes)) / float64(diffDate)
+	return int(math.Round(bps / 1000))
 }
