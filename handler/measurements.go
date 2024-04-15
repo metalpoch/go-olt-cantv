@@ -7,12 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/metalpoch/go-olt-cantv/config"
 	"github.com/metalpoch/go-olt-cantv/database"
 	"github.com/metalpoch/go-olt-cantv/model"
 	helper "github.com/metalpoch/go-olt-cantv/pkg"
 	"github.com/metalpoch/go-olt-cantv/pkg/snmp"
-	"github.com/metalpoch/go-olt-cantv/pkg/ssh"
 )
 
 func GetMeasurements() {
@@ -27,9 +25,6 @@ func GetMeasurements() {
 		log.Fatalln("no device data to scan")
 	}
 
-	ssh_client := ssh.ClientSSH(config.LoadConfiguration())
-	defer ssh_client.Close()
-
 	var wg sync.WaitGroup
 	wg.Add(len(devices))
 
@@ -43,7 +38,7 @@ func GetMeasurements() {
 			}
 
 			unix_time := time.Now().Unix()
-			measurements := snmp.Measurements(ssh_client, device)
+			measurements := snmp.Measurements(device)
 
 			for idx, ifname := range measurements.IfName {
 

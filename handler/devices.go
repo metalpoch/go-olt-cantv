@@ -5,10 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/metalpoch/go-olt-cantv/config"
 	"github.com/metalpoch/go-olt-cantv/database"
 	"github.com/metalpoch/go-olt-cantv/pkg/snmp"
-	"github.com/metalpoch/go-olt-cantv/pkg/ssh"
 )
 
 func GetDevices() {
@@ -26,10 +24,7 @@ func GetDevices() {
 }
 
 func AddDevices(ip string, community string) {
-	cfg := config.LoadConfiguration()
-	ssh_client := ssh.ClientSSH(cfg)
-	defer ssh_client.Close()
-	device := snmp.Sysname(ssh_client, ip, community)
+	device := snmp.Sysname(ip, community)
 
 	db := database.DeviceConnect()
 	err := handlerDevice(db).Add(device)
