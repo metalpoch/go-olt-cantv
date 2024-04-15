@@ -3,11 +3,10 @@ package snmp
 import (
 	"fmt"
 	"log"
-	"os/exec"
 	"strconv"
 	"strings"
-	"sync"
 
+	"github.com/melbahja/goph"
 	"github.com/metalpoch/go-olt-cantv/model"
 )
 
@@ -19,51 +18,54 @@ const (
 	bandwidth_oid = "1.3.6.1.2.1.31.1.1.1.15"
 )
 
-func Sysname(ip, host, community string) model.Device {
+func Sysname(ssh_client *goph.Client, ip, community string) model.Device {
 	sysname := model.Device{
 		IP:        ip,
 		Community: community,
 	}
 
-	snmp_command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, sysname_oid)
-	out, err := exec.Command("ssh", host, snmp_command).Output()
+	command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, sysname_oid)
+	out, err := ssh_client.Run(command)
+
 	if err != nil {
-		log.Fatalln("error when running snmp command, check IP and Community")
+		log.Fatal(err)
 	}
+
 	rows := strings.Split(string(out), "\n")
 	for _, row := range rows {
 		if len(row) < 1 {
 			break
 		}
-
 		sysname.Sysname = strings.Split(row, "STRING: ")[1]
 	}
 
 	return sysname
 }
 
-func Measurements(ip, host, community string) model.Snmp {
+func Measurements(ssh_client *goph.Client, device model.Device) model.Snmp {
+	oids := [4]string{ifname_oid, bytes_in_oid, bytes_out_oid, bandwidth_oid}
 	ports_map := make(map[int]string)
 	in_map := make(map[int]int)
 	out_map := make(map[int]int)
 	bandwidth_map := make(map[int]int)
 
-	var wg sync.WaitGroup
-	wg.Add(4)
+	// var wg sync.WaitGroup
+	// wg.Add(4)
 
-	go func(oid string) {
-		defer wg.Done()
+	for _, oid := range oids {
+		command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", device.Community, device.IP, oid)
+		out, err := ssh_client.Run(command)
 
-		snmp_command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, oid)
-		out, err := exec.Command("ssh", host, snmp_command).Output()
 		if err != nil {
-			log.Fatal(err)
+			log.Println("AYUUUDAAA:", device.Sysname, "-", err, string(out))
 		}
+
 		rows := strings.Split(string(out), "\n")
 		for _, row := range rows {
 			if len(row) < 1 {
 				break
 			}
+
 			var value string
 			splited := strings.Split(row, " = ")
 			index_part := strings.Split(splited[0], ".")
@@ -71,115 +73,74 @@ func Measurements(ip, host, community string) model.Snmp {
 
 			index, err := strconv.Atoi(index_part[len(index_part)-1])
 			if err != nil {
-				log.Fatal(err)
+				log.Println(device.Sysname, "-", err, string(out))
 			}
 
-			ports_map[index] = value
+			if oid == ifname_oid {
+				ports_map[index] = value
+			} else {
+				valueInt, err := strconv.Atoi(value)
+				if err != nil {
+					log.Println(device.Sysname, "-", err, string(out))
+				}
 
+				switch oid {
+				case bytes_in_oid:
+					in_map[index] = valueInt
+				case bytes_out_oid:
+					out_map[index] = valueInt
+				case bandwidth_oid:
+					bandwidth_map[index] = valueInt
+				}
+			}
 		}
-	}(ifname_oid)
+		// go func(oid string) {
+		// 	defer wg.Done()
+		// 	command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", device.Community, device.IP, oid)
+		// 	out, err := ssh_client.Run(command)
 
-	go func(oid string) {
-		defer wg.Done()
+		// 	if err != nil {
+		// 		log.Println(device.Sysname, "-", err, string(out))
+		// 	}
 
-		snmp_command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, oid)
-		out, err := exec.Command("ssh", "taccess@161.196.112.163", snmp_command).Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rows := strings.Split(string(out), "\n")
+		// 	rows := strings.Split(string(out), "\n")
+		// 	for _, row := range rows {
+		// 		if len(row) < 1 {
+		// 			break
+		// 		}
 
-		for _, row := range rows {
-			if len(row) < 1 {
-				break
-			}
-			var value string
-			splited := strings.Split(row, " = ")
-			index_part := strings.Split(splited[0], ".")
-			value = strings.Split(splited[1], ": ")[1]
+		// 		var value string
+		// 		splited := strings.Split(row, " = ")
+		// 		index_part := strings.Split(splited[0], ".")
+		// 		value = strings.Split(splited[1], ": ")[1]
 
-			index, err := strconv.Atoi(index_part[len(index_part)-1])
-			if err != nil {
-				log.Fatal(err)
-			}
+		// 		index, err := strconv.Atoi(index_part[len(index_part)-1])
+		// 		if err != nil {
+		// 			log.Println(device.Sysname, "-", err, string(out))
+		// 		}
 
-			valueInt, err := strconv.Atoi(value)
-			if err != nil {
-				log.Fatal(err)
-			}
+		// 		if oid == ifname_oid {
+		// 			ports_map[index] = value
+		// 		} else {
+		// 			valueInt, err := strconv.Atoi(value)
+		// 			if err != nil {
+		// 				log.Println(device.Sysname, "-", err, string(out))
+		// 			}
 
-			in_map[index] = valueInt
+		// 			switch oid {
+		// 			case bytes_in_oid:
+		// 				in_map[index] = valueInt
+		// 			case bytes_out_oid:
+		// 				out_map[index] = valueInt
+		// 			case bandwidth_oid:
+		// 				bandwidth_map[index] = valueInt
+		// 			}
+		// 		}
+		// 	}
+		// }(oid)
+	}
 
-		}
-	}(bytes_in_oid)
-
-	go func(oid string) {
-		defer wg.Done()
-
-		snmp_command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, oid)
-		out, err := exec.Command("ssh", "taccess@161.196.112.163", snmp_command).Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rows := strings.Split(string(out), "\n")
-		for _, row := range rows {
-			if len(row) < 1 {
-				break
-			}
-			var value string
-			splited := strings.Split(row, " = ")
-			index_part := strings.Split(splited[0], ".")
-			value = strings.Split(splited[1], ": ")[1]
-
-			index, err := strconv.Atoi(index_part[len(index_part)-1])
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			valueInt, err := strconv.Atoi(value)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			out_map[index] = valueInt
-
-		}
-	}(bytes_out_oid)
-
-	go func(oid string) {
-		defer wg.Done()
-
-		snmp_command := fmt.Sprintf("snmpwalk -v 2c -c %s %s %s", community, ip, oid)
-		out, err := exec.Command("ssh", "taccess@161.196.112.163", snmp_command).Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		rows := strings.Split(string(out), "\n")
-		for _, row := range rows {
-			if len(row) < 1 {
-				break
-			}
-			var value string
-			splited := strings.Split(row, " = ")
-			index_part := strings.Split(splited[0], ".")
-			value = strings.Split(splited[1], ": ")[1]
-
-			index, err := strconv.Atoi(index_part[len(index_part)-1])
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			valueInt, err := strconv.Atoi(value)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			bandwidth_map[index] = valueInt
-
-		}
-	}(bandwidth_oid)
-
-	wg.Wait()
+	// wg.Wait()
 
 	return model.Snmp{
 		IfName:    ports_map,

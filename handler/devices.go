@@ -1,17 +1,18 @@
 package handler
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/metalpoch/go-olt-cantv/config"
-	"github.com/metalpoch/go-olt-cantv/model"
+	"github.com/metalpoch/go-olt-cantv/database"
 	"github.com/metalpoch/go-olt-cantv/pkg/snmp"
+	"github.com/metalpoch/go-olt-cantv/pkg/ssh"
 )
 
-func GetDevices(db *sql.DB) {
+func GetDevices() {
+	db := database.DeviceConnect()
 	devices, err := handlerDevice(db).FindAll()
 
 	if err != nil {
@@ -24,9 +25,13 @@ func GetDevices(db *sql.DB) {
 	}
 }
 
-func AddDevices(db *sql.DB, ip string, community string) {
-	var cfg model.Config = config.LoadConfiguration()
-	device := snmp.Sysname(ip, cfg.ProxyHost, community)
+func AddDevices(ip string, community string) {
+	cfg := config.LoadConfiguration()
+	ssh_client := ssh.ClientSSH(cfg)
+	defer ssh_client.Close()
+	device := snmp.Sysname(ssh_client, ip, community)
+
+	db := database.DeviceConnect()
 	err := handlerDevice(db).Add(device)
 	if err != nil {
 		log.Println("error saving device:", err.Error())

@@ -7,12 +7,6 @@ import (
 	"github.com/metalpoch/go-olt-cantv/usecase"
 )
 
-func handlerDate(db *sql.DB) *usecase.DateUsecase {
-	return usecase.NewDateUsecase(
-		repository.NewDateRepository(db),
-	)
-}
-
 func handlerDevice(db *sql.DB) *usecase.DeviceUsecase {
 	return usecase.NewDevicesUsecase(
 		repository.NewDeviceRepository(db),

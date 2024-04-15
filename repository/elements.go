@@ -24,8 +24,7 @@ type ElementsRepository interface {
 }
 
 func (repo elementsRepository) Save(ctx context.Context, element model.Element) (int, error) {
-	res, err := repo.db.ExecContext(ctx, "INSERT INTO elements (device_id, shell, card, port) VALUES(?, ?, ?, ?)",
-		element.DeviceID,
+	res, err := repo.db.ExecContext(ctx, "INSERT INTO elements (shell, card, port) VALUES(?, ?, ?)",
 		element.Shell,
 		element.Card,
 		element.Port,
@@ -56,11 +55,10 @@ func (repo elementsRepository) FindID(ctx context.Context, element model.Element
 	var id int
 	err := repo.db.QueryRowContext(
 		ctx,
-		"SELECT id FROM elements WHERE shell=? and card=? and port=? and device_id=?",
+		"SELECT id FROM elements WHERE shell=? and card=? and port=?",
 		element.Shell,
 		element.Card,
 		element.Port,
-		element.DeviceID,
 	).Scan(&id)
 
 	if err != nil {

@@ -25,9 +25,9 @@ func NewMeasurementsRepository(db *sql.DB) *trafficRepository {
 func (repo trafficRepository) Save(ctx context.Context, traffic model.Traffic) (int, error) {
 	res, err := repo.db.ExecContext(
 		ctx,
-		"INSERT INTO traffic (element_id, date_id, kbps_in, kbps_out, bandwidth) VALUES(?, ?, ?, ?, ?)",
+		"INSERT INTO traffic (element_id, date, kbps_in, kbps_out, bandwidth) VALUES(?, ?, ?, ?, ?)",
 		traffic.ElementID,
-		traffic.DateID,
+		traffic.Date,
 		traffic.KpbsIn,
 		traffic.KpbsOut,
 		traffic.Bandwidth,

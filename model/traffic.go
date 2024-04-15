@@ -2,7 +2,7 @@ package model
 
 type Traffic struct {
 	ElementID int
-	DateID    int
+	Date      int
 	KpbsIn    int
 	KpbsOut   int
 	Bandwidth int

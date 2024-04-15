@@ -3,6 +3,7 @@ package helper
 import (
 	"log"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 
@@ -38,4 +39,13 @@ func ParseGPON(s string) model.Element {
 func BytesToKbps(prevBytes, currBytes, diffDate int) int {
 	bps := math.Abs(float64(8*currBytes)-float64(8*prevBytes)) / float64(diffDate)
 	return int(math.Round(bps / 1000))
+}
+
+func Mkdir(dir string) {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.Mkdir(dir, 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

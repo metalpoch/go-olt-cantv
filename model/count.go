@@ -2,7 +2,7 @@ package model
 
 type Count struct {
 	ElementID int
-	DateID    int
+	Date      int
 	BytesIn   int
 	BytesOut  int
 	Bandwidth int
@@ -10,10 +10,10 @@ type Count struct {
 
 type CountDiff struct {
 	ElementID     int
-	PrevDateID    int
+	PrevDate      int
 	PrevBytesIn   int
 	PrevBytesOut  int
-	CurrDateID    int
+	CurrDate      int
 	CurrBytesIn   int
 	CurrBytesOut  int
 	CurrBandwidth int

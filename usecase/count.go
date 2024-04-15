@@ -33,10 +33,10 @@ func (d CountUsecase) Add(currCount model.Count) (model.CountDiff, error) {
 	if err != sql.ErrNoRows {
 		countDiff = model.CountDiff{
 			ElementID:     currCount.ElementID,
-			PrevDateID:    prevCount.DateID,
+			PrevDate:      prevCount.Date,
 			PrevBytesIn:   prevCount.BytesIn,
 			PrevBytesOut:  prevCount.BytesOut,
-			CurrDateID:    currCount.DateID,
+			CurrDate:      currCount.Date,
 			CurrBytesIn:   currCount.BytesIn,
 			CurrBytesOut:  currCount.BytesOut,
 			CurrBandwidth: currCount.Bandwidth,

@@ -19,14 +19,14 @@ func NewTrafficUsecase(repo repository.TrafficRepository) *TrafficUsecase {
 	}
 }
 
-func (m TrafficUsecase) Add(count model.CountDiff, firstday, lastday int) (int, error) {
+func (m TrafficUsecase) Add(count model.CountDiff) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	diffDate := lastday - firstday
+	diffDate := count.CurrDate - count.PrevDate
 	traffic := model.Traffic{
 		ElementID: count.ElementID,
-		DateID:    count.CurrDateID,
+		Date:      count.CurrDate,
 		KpbsIn:    helper.BytesToKbps(count.PrevBytesIn, count.CurrBytesIn, diffDate),
 		KpbsOut:   helper.BytesToKbps(count.PrevBytesOut, count.CurrBytesOut, diffDate),
 		Bandwidth: count.CurrBandwidth,

@@ -27,9 +27,9 @@ func NewCountsRepository(db *sql.DB) *countRepository {
 func (repo countRepository) Save(ctx context.Context, count model.Count) (int, error) {
 	res, err := repo.db.ExecContext(
 		ctx,
-		"INSERT INTO tempcounts (element_id, date_id, bytes_in, bytes_out, bandwidth) VALUES(?, ?, ?, ?, ?)",
+		"INSERT INTO tempcounts (element_id, date, bytes_in, bytes_out, bandwidth) VALUES(?, ?, ?, ?, ?)",
 		count.ElementID,
-		count.DateID,
+		count.Date,
 		count.BytesIn,
 		count.BytesOut,
 		count.Bandwidth,
@@ -50,7 +50,7 @@ func (repo countRepository) FindPreviouCount(ctx context.Context, elementID int)
 	count := entity.Count{}
 	err := repo.db.QueryRowContext(ctx, "SELECT * FROM tempcounts WHERE element_id=?", elementID).Scan(
 		&count.ElementID,
-		&count.DateID,
+		&count.Date,
 		&count.BytesIn,
 		&count.BytesOut,
 		&count.Bandwidth,
@@ -60,7 +60,7 @@ func (repo countRepository) FindPreviouCount(ctx context.Context, elementID int)
 	}
 	return model.Count{
 		ElementID: count.ElementID,
-		DateID:    count.DateID,
+		Date:      count.Date,
 		BytesIn:   count.BytesIn,
 		BytesOut:  count.BytesOut,
 		Bandwidth: count.Bandwidth,

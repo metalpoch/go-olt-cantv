@@ -3,7 +3,7 @@ package entity
 type Traffic struct {
 	ID        int
 	ElementID int
-	DateID    int
+	Date      int
 	KbpsIn    int
 	KbpsOut   int
 	Bandwidth int

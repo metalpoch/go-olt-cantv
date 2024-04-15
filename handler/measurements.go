@@ -8,14 +8,16 @@ import (
 	"time"
 
 	"github.com/metalpoch/go-olt-cantv/config"
+	"github.com/metalpoch/go-olt-cantv/database"
 	"github.com/metalpoch/go-olt-cantv/model"
 	helper "github.com/metalpoch/go-olt-cantv/pkg"
 	"github.com/metalpoch/go-olt-cantv/pkg/snmp"
+	"github.com/metalpoch/go-olt-cantv/pkg/ssh"
 )
 
-func GetMeasurements(db *sql.DB) {
-	var cfg model.Config = config.LoadConfiguration()
-	devices, err := handlerDevice(db).FindAll()
+func GetMeasurements() {
+	db_devices := database.DeviceConnect()
+	devices, err := handlerDevice(db_devices).FindAll()
 
 	if err != nil {
 		log.Fatalln("error searching for devices:", err.Error())
@@ -25,38 +27,40 @@ func GetMeasurements(db *sql.DB) {
 		log.Fatalln("no device data to scan")
 	}
 
-	unix_time := time.Now().Unix()
-	time_string := time.Unix(unix_time, 0).String()
-	date_id, err := handlerDate(db).Add(int(unix_time))
-	if err != nil {
-		log.Fatalln(err)
-	}
+	ssh_client := ssh.ClientSSH(config.LoadConfiguration())
+	defer ssh_client.Close()
 
-	// TODO: recorrer de manera asincrona cada dispositivo
 	var wg sync.WaitGroup
 	wg.Add(len(devices))
-	for _, device := range devices {
 
+	for _, device := range devices {
 		go func() {
-			log.Printf("getting data from %s at %s\n", device.Sysname, time_string)
-			measurements := snmp.Measurements(device.IP, cfg.ProxyHost, device.Community)
+			defer wg.Done()
+
+			db_sysname := database.MeasurementConnect(device.Sysname)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			unix_time := time.Now().Unix()
+			measurements := snmp.Measurements(ssh_client, device)
 
 			for idx, ifname := range measurements.IfName {
 
 				if !strings.HasPrefix(ifname, "GPON") {
 					continue
 				}
+
 				gpon := helper.ParseGPON(ifname)
 
 				element := model.Element{
-					Shell:    gpon.Shell,
-					Card:     gpon.Card,
-					Port:     gpon.Port,
-					DeviceID: device.ID,
+					Shell: gpon.Shell,
+					Card:  gpon.Card,
+					Port:  gpon.Port,
 				}
 
 				// find device in db
-				elementID, err := handlerElement(db).FindID(element)
+				elementID, err := handlerElement(db_sysname).FindID(element)
 
 				if err != sql.ErrNoRows && err != nil {
 					log.Printf("error when searching %s: %s\n", ifname, err.Error())
@@ -64,16 +68,16 @@ func GetMeasurements(db *sql.DB) {
 
 				// element not exist
 				if err == sql.ErrNoRows {
-					elementID, err = handlerElement(db).Save(element)
+					elementID, err = handlerElement(db_sysname).Save(element)
 					if err != nil {
 						log.Printf("error when trying to save %s with device_id %d: %s\n", ifname, device.ID, err.Error())
 						continue
 					}
 				}
 
-				countDiff, err := handlerCount(db).Add(model.Count{
+				countDiff, err := handlerCount(db_sysname).Add(model.Count{
 					ElementID: elementID,
-					DateID:    date_id,
+					Date:      int(unix_time),
 					BytesIn:   measurements.ByteIn[idx],
 					BytesOut:  measurements.ByteOut[idx],
 					Bandwidth: measurements.Bandwidth[idx],
@@ -85,16 +89,13 @@ func GetMeasurements(db *sql.DB) {
 				}
 
 				if countDiff.ElementID > 0 {
-					firstDate, _ := handlerDate(db).Get(countDiff.PrevDateID)
-					lastDate, _ := handlerDate(db).Get(countDiff.CurrDateID)
-
-					if _, err := handlerTraffic(db).Add(countDiff, firstDate, lastDate); err != nil {
-						log.Printf("error when trying to save the traffic of %s on day %d: %s\n", ifname, date_id, err.Error())
+					if _, err := handlerTraffic(db_sysname).Add(countDiff); err != nil {
+						log.Printf("error when trying to save the traffic of %s on day %d: %s\n", ifname, countDiff.CurrDate, err.Error())
 					}
 				}
 
 			}
-			wg.Done()
+
 		}()
 
 	}

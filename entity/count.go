@@ -1,9 +1,8 @@
 package entity
 
 type Count struct {
-	ID        int
 	ElementID int
-	DateID    int
+	Date      int
 	BytesIn   int
 	BytesOut  int
 	Bandwidth int
